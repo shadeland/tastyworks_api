@@ -7,16 +7,30 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TastyAPISession(object):
-    def __init__(self, username: str, password: str, API_url=None):
+    def __init__(self, username: str, password: str,token = None,  API_url=None):
         self.API_url = API_url if API_url else 'https://api.tastyworks.com'
+
         self.username = username
         self.password = password
         self.logged_in = False
-        self.session_token = self._get_session_token()
+        self.session_token = token if token else self._get_session_token()
+       
+        if token and self._validate_session():
+            self.logged_in = True
+        else :
+            LOGGER.info('Provided Session token is invalid, trying to obtain a new token...')
+            self._get_session_token()
+
+            
+
+
+
+    def get_session_token(self):
+        return self.session_token
 
     def _get_session_token(self):
         if self.logged_in and self.session_token:
-            if (datetime.datetime.now() - self.logged_in_at).total_seconds() < 60:
+            if(datetime.datetime.now() - self.logged_in_at).total_seconds() < 60:
                 return self.session_token
 
         body = {
@@ -33,6 +47,7 @@ class TastyAPISession(object):
         self.logged_in = True
         self.logged_in_at = datetime.datetime.now()
         self.session_token = resp.json()['data']['session-token']
+        LOGGER.info('Session token: %s' % self.session_token)
         self._validate_session()
         return self.session_token
 

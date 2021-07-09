@@ -1,0 +1,4 @@
+aiocometd
+aiohttp
+dataclasses
+requests
