@@ -96,7 +96,8 @@ class DataStreamer(object):
         LOGGER.info('Connected and logged in to dxFeed data stream')
 
         await self.reset_data_subs()
-
+    async def disconnect(self):
+        await self.cometd_client.close()
     async def listen(self):
         async for msg in self.cometd_client:
             LOGGER.debug('[dxFeed] received: %s', msg)

@@ -1,6 +1,8 @@
 import asyncio
 import calendar
 import logging
+import signal
+import os
 from os import environ
 from datetime import date, timedelta
 from decimal import Decimal
@@ -17,24 +19,24 @@ from tastyworks.tastyworks_api import tasty_session
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
+out = []
 async def main_loop(session: TastyAPISession, streamer: DataStreamer):
     sub_values = {
         "Greeks": [
-            ".NVDA210716C620"
-            # ".YUM180518C95"
+            ".NVDA210716C620",
+            ".NVDA210716C625"
         ]
     }
     # sub_values = {
     #     "Quote": ["/ES"]
     # }
 
-    accounts = await TradingAccount.get_remote_accounts(session)
-    acct = accounts[0]
-    LOGGER.info('Accounts available: %s', accounts)
+    # accounts = await TradingAccount.get_remote_accounts(session)
+    # acct = accounts[0]
+    # LOGGER.info('Accounts available: %s', accounts)
 
-    orders = await Order.get_remote_orders(session, acct)
-    LOGGER.info('Number of active orders: %s', len(orders))
+    # orders = await Order.get_remote_orders(session, acct)
+    # LOGGER.info('Number of active orders: %s', len(orders))
 
     # Execute an order
 
@@ -58,15 +60,21 @@ async def main_loop(session: TastyAPISession, streamer: DataStreamer):
     # LOGGER.info('Order executed successfully: %s', res)
 
     # Get an options chain
-    undl = underlying.Underlying('AAPL')
+    # undl = underlying.Underlying('AAPL')
 
-    chain = await option_chain.get_option_chain(session, undl)
-    LOGGER.info('Chain strikes: %s', chain.get_all_strikes())
+    # chain = await option_chain.get_option_chain(session, undl)
+    # LOGGER.info('Chain strikes: %s', chain.get_all_strikes())
 
     await streamer.add_data_sub(sub_values)
-
+    i = 0
     async for item in streamer.listen():
+
         LOGGER.info('Received item: %s' % item.data)
+        #call something else here
+        i = i+1
+        out.append(item.data)
+        print(i)
+        os.kill(os.getpid(), signal.SIGINT)
 
 
 def get_third_friday(d):
@@ -83,7 +91,7 @@ def get_third_friday(d):
 
 
 def main():
-    tasty_client = tasty_session.create_new_session(environ.get('TW_USER', ""), environ.get('TW_PASSWORD', ""), token='i7IlI-tY86iFfQLnqyAZoZnaY_BwShJ9TSb2TVeyF_4KsCCpq-vS8w+C')
+    tasty_client = tasty_session.create_new_session(environ.get('TW_USER', ""), environ.get('TW_PASSWORD', ""), token='PXfjLzSM4LL2ybU5rLn9UAtAYjrCLak40CsSBh8ZnZm3XZ-aYr6ZWA+C')
 
     streamer = DataStreamer(tasty_client)
     LOGGER.info('Streamer token: %s' % streamer.get_streamer_token())
@@ -91,15 +99,17 @@ def main():
 
     try:
         loop.run_until_complete(main_loop(tasty_client, streamer))
+        loop.close()
     except Exception:
         LOGGER.exception('Exception in main loop')
     finally:
+        pass
         # find all futures/tasks still running and wait for them to finish
-        pending_tasks = [
-            task for task in asyncio.Task.all_tasks() if not task.done()
-        ]
-        loop.run_until_complete(asyncio.gather(*pending_tasks))
-        loop.close()
+        # pending_tasks = [
+        #     task for task in asyncio.Task.all_tasks() if not task.done()
+        # ]
+        # loop.run_until_complete(asyncio.gather(*pending_tasks))
+        
 
 
 if __name__ == '__main__':

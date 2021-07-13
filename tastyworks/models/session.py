@@ -60,9 +60,6 @@ class TastyAPISession(object):
             self.logged_in = False
             self.logged_in_at = None
             self.session_token = None
-            raise Exception('Could not validate the session, error message: {}'.format(
-                resp.json()['error']['message']
-            ))
             return False
         return True
 
