@@ -29,7 +29,7 @@ class Market_Metrics:
 
         url = f"{session.API_url}/market-metrics?{','.join(symbols)}"
 
-        res = requests.get(url,headers=session.get_request_headers()).json()
+        res = requests.get(url,headers=session.get_request_headers())
         return res
         
 
