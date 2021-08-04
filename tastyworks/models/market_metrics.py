@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Market_Metrics:
     @staticmethod
-    def get_market_metrics(self, session, symbols: List[str] ,**kwargs) -> any : 
+    def get_market_metrics(session, symbols: List[str] ,**kwargs) -> any : 
         """
         Gets all market metrics.
 
@@ -22,7 +22,7 @@ class Market_Metrics:
             session (TastyAPISession): The session to use.
             symbold : list of symbols to get data from
         Returns:
-            list(Order): A list of Orders
+            List/Dict: market metrics
         """
         if not session.logged_in:
             raise Exception('Tastyworks session not logged in.')
